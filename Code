@@ -1,0 +1,87 @@
+ubuntu@ip-172-31-37-71:~$ mkdir backups
+ubuntu@ip-172-31-37-71:~$ cd backups
+ubuntu@ip-172-31-37-71:~/backups$ crontab -e
+no crontab for ubuntu - using an empty one
+
+Select an editor.  To change later, run 'select-editor'.
+  1. /bin/nano        <---- easiest
+  2. /usr/bin/vim.basic
+  3. /usr/bin/vim.tiny
+  4. /bin/ed
+
+Choose 1-4 [1]: 2
+
+ubuntu@ip-172-31-37-71:~/backups$ pwd
+/home/ubuntu/backups
+
+
+ubuntu@ip-172-31-37-71:~/backups$ vim backup.sh
+ubuntu@ip-172-31-37-71:~/backups$ cat backup.sh
+#!/bin/bash
+
+# Check if the directory to back up is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <directory_to_backup> <backup_location>"
+    exit 1
+fi
+
+# Assign arguments to variables
+source_dir=$1
+backup_dir=$2
+
+# Create a timestamp for the backup folder
+timestamp=$(date +%Y%m%d%H%M%S)
+
+# Create a new backup folder with the timestamp in the backup directory
+mkdir -p "$backup_dir/$timestamp"
+
+# Use rsync to copy files from the source directory to the backup folder
+# Exclude the backup directory itself
+rsync -av --exclude="$backup_dir" "$source_dir/" "$backup_dir/$timestamp/"
+
+# Backup rotation - keep only the last 3 backups
+backups=($(ls -dt "$backup_dir"/*))
+if [ ${#backups[@]} -gt 3 ]; then
+    # Delete backups older than the 3 most recent
+    rm -rf "${backups[@]:3}"
+fi
+
+echo "Backup completed and rotation applied."
+
+
+
+
+
+
+ubuntu@ip-172-31-37-71:~/backups$ pwd
+/home/ubuntu/backups
+
+ubuntu@ip-172-31-37-71:~/backups$ cd ..
+ubuntu@ip-172-31-37-71:~$ vim backup.sh
+ubuntu@ip-172-31-37-71:~$ crontab -e
+no crontab for ubuntu - using an empty one
+crontab: installing new crontab
+ubuntu@ip-172-31-37-71:~$ ls
+backup.sh   backups  compare_numbers.sh  day07  day09   file.sh     script.sh
+backup.zip  batch8   day06               day08  devops  install.sh
+
+ubuntu@ip-172-31-37-71:~$ pwd
+/home/ubuntu
+ubuntu@ip-172-31-37-71:~$ vim backup.sh
+ubuntu@ip-172-31-37-71:~$ chmod +x /home/ubuntu/backup.sh
+
+Backup completed and rotation applied.
+ubuntu@ip-172-31-37-71:~$ vim backup.sh
+ubuntu@ip-172-31-37-71:~$ chmod +x /home/ubuntu/backup.sh
+ubuntu@ip-172-31-37-71:~$ /home/ubuntu/backup.sh /home/ubuntu/backups /home/ubuntu/backups
+sending incremental file list
+backup.sh
+20241016040310/
+20241016040310/backup.sh
+20241016040310/20241016040310/
+20241016041323/
+
+sent 1,610 bytes  received 70 bytes  3,360.00 bytes/sec
+total size is 1,288  speedup is 0.77
+Backup completed and rotation applied.
+ubuntu@ip-172-31-37-71:~$
